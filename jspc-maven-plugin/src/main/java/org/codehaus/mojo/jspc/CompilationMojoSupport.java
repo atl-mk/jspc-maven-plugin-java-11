@@ -59,13 +59,13 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 
 abstract class CompilationMojoSupport extends AbstractMojo {
     private static final String DEFAULT_INJECT_STRING = "</web-app>";
-    
+
     /**
      * The working directory to create the generated java source files.
      */
     @Parameter(defaultValue="${project.build.directory}/jsp-source", required=true)
     File workingDirectory;
-    
+
     /**
      * The sources of the webapp. If not specified all files under {@link #defaultSourcesDirectory} are used
      */
@@ -77,25 +77,25 @@ abstract class CompilationMojoSupport extends AbstractMojo {
      */
     @Parameter(defaultValue="${project.basedir}/src/main/webapp")
     File defaultSourcesDirectory;
-    
+
     /**
      * The path and location to the web fragment file.
      */
     @Parameter(defaultValue="${project.build.directory}/web-fragment.xml", required=true)
     File webFragmentFile;
-    
+
     /**
      * The path and location of the original web.xml file.
      */
     @Parameter(defaultValue="${basedir}/src/main/webapp/WEB-INF/web.xml", required=true)
     File inputWebXml;
-    
+
     /**
      * The final path and file name of the web.xml.
      */
     @Parameter(defaultValue="${project.build.directory}/jspweb.xml", required=true)
     File outputWebXml;
-    
+
     /**
      * Character encoding.
      */
@@ -131,7 +131,7 @@ abstract class CompilationMojoSupport extends AbstractMojo {
     /**
      * The string to look for in the web.xml to replace with the web fragment
      * contents
-     * 
+     *
      * If not defined, fragment will be appended before the &lt;/webapp&gt; tag
      * which is fine for servlet 2.4 and greater.  If using this parameter its
      * recommanded to use Strings such as
@@ -141,7 +141,7 @@ abstract class CompilationMojoSupport extends AbstractMojo {
      */
     @Parameter(defaultValue=DEFAULT_INJECT_STRING)
     String injectString;
-    
+
     /**
      * The package in which the jsp files will be contained.
      */
@@ -239,9 +239,9 @@ abstract class CompilationMojoSupport extends AbstractMojo {
      */
     @Parameter(defaultValue="1")
     int compileThreads;
-    
+
     /**
-     * maximum amount of time compilation can take or be killed in minutes 
+     * maximum amount of time compilation can take or be killed in minutes
      */
     @Parameter(defaultValue="5")
     int compilationTimeout;
@@ -255,19 +255,19 @@ abstract class CompilationMojoSupport extends AbstractMojo {
      */
     @Component
     protected MavenProject project;
-    
+
     @Component( role = MavenFileFilter.class, hint = "default" )
     private MavenFileFilter mavenFileFilter;
 
     @Component
     private MavenSession session;
-    
+
     @Component
     private BuildContext buildContext;
 
     @Component
     private JspCompilerFactory jspCompilerFactory;
-    
+
     // Sub-class must provide
     protected abstract List<String> getClasspathElements() throws MojoExecutionException;
 
@@ -275,9 +275,9 @@ abstract class CompilationMojoSupport extends AbstractMojo {
         if (skip) {
             return;
         }
-        
+
         final Log log = this.getLog();
-        
+
         final boolean isWar = "war".equals(project.getPackaging());
 
         if (!isWar) {
@@ -288,8 +288,8 @@ abstract class CompilationMojoSupport extends AbstractMojo {
             log.warn("Compiled JSPs will not be added to the project and web.xml will " +
                      "not be modified because includeInProject is set to false.");
         }
-        
-        
+
+
         final JspCompiler jspCompiler = this.jspCompilerFactory.createJspCompiler();
 
         // Setup defaults (complex, can"t init from expression)
@@ -301,27 +301,27 @@ abstract class CompilationMojoSupport extends AbstractMojo {
 
         jspCompiler.setWebappDirectory(sources.getDirectory());
         log.debug("Source directory: " + this.sources.getDirectory());
-        
+
         jspCompiler.setOutputDirectory(this.workingDirectory);
         log.debug("Output directory: " + this.workingDirectory);
-        
+
         jspCompiler.setEncoding(this.javaEncoding);
         log.debug("Encoding: " + this.javaEncoding);
-        
+
         jspCompiler.setShowSuccess(this.showSuccess);
-        
+
         jspCompiler.setListErrors(this.listErrors);
-        
+
         jspCompiler.setWebFragmentFile(webFragmentFile);
         log.debug("Web Fragment: " + this.webFragmentFile);
-        
+
         jspCompiler.setPackageName(packageName);
         log.debug("Package Name: " + this.packageName);
-        
+
         final List<String> classpathElements = getClasspathElements();
         jspCompiler.setClasspath(classpathElements);
         log.debug("Classpath: " + classpathElements);
-        
+
         final List<File> jspFiles;
         if (sources.getIncludes() != null) {
             //Always need to get a full list of JSP files as incremental builds would result in an invalid web.xml
@@ -329,9 +329,9 @@ abstract class CompilationMojoSupport extends AbstractMojo {
             scanner.setIncludes(sources.getIncludesArray());
             scanner.setExcludes(sources.getExcludesArray());
             scanner.addDefaultExcludes();
-            
+
             scanner.scan();
-            
+
             final String[] includes = scanner.getIncludedFiles();
             jspFiles = new ArrayList<File>(includes.length);
             for (final String it : includes) {
@@ -341,7 +341,7 @@ abstract class CompilationMojoSupport extends AbstractMojo {
         else {
             jspFiles = Collections.emptyList();
         }
-        
+
         jspCompiler.setSmapDumped(smapDumped);
         jspCompiler.setSmapSuppressed(smapSuppressed);
         jspCompiler.setCompile(compile);
@@ -357,16 +357,17 @@ abstract class CompilationMojoSupport extends AbstractMojo {
         jspCompiler.setClassDebugInfo(classDebugInfo);
         jspCompiler.setCompileThreads(compileThreads);
         jspCompiler.setCompileTimeout(TimeUnit.MINUTES.toMillis(compilationTimeout));
-        
+
         // Make directories if needed
         workingDirectory.mkdirs();
         webFragmentFile.getParentFile().mkdirs();
         outputWebXml.getParentFile().mkdirs();
-        
-        // JspC needs URLClassLoader, with tools.jar
+
         final ClassLoader parent = Thread.currentThread().getContextClassLoader();
         final JspcMojoClassLoader cl = new JspcMojoClassLoader(parent);
-        if(compile) {
+        // JspC needs URLClassLoader, with tools.jar
+        final boolean isBelowJava9 = System.getProperty("java.version").startsWith("1.");
+        if(compile && isBelowJava9) {
             cl.addURL(findToolsJar());
         }
         Thread.currentThread().setContextClassLoader(cl);
@@ -379,12 +380,12 @@ abstract class CompilationMojoSupport extends AbstractMojo {
             else {
                 log.info("Compiling JSP source files to " + workingDirectory);
             }
-            
+
             final StopWatch watch = new StopWatch();
             watch.start();
-            
+
             jspCompiler.compile(jspFiles);
-            
+
             log.info("Compilation completed in " + watch);
         }
         catch (Exception e) {
@@ -394,19 +395,19 @@ abstract class CompilationMojoSupport extends AbstractMojo {
             // Set back the old classloader
             Thread.currentThread().setContextClassLoader(parent);
         }
-        
+
         //Notify the build context that the jspFiles have been modified by the jsp compiler
         for (final File jspFile : jspFiles) {
             this.buildContext.refresh(jspFile);
         }
-        
+
         // Maybe install the generated classes into the default output directory
         if (compile && isWar && includeInProject) {
             final Scanner scanner = buildContext.newScanner(this.workingDirectory);
             scanner.addDefaultExcludes();
             scanner.setIncludes(new String[] { "**/*.class" });
             scanner.scan();
-            
+
             for (final String includedFile : scanner.getIncludedFiles()) {
                 final File s = new File(this.workingDirectory, includedFile);
                 final File d = new File(this.project.getBuild().getOutputDirectory(), includedFile);
@@ -424,21 +425,21 @@ abstract class CompilationMojoSupport extends AbstractMojo {
                 }
             }
         }
-        
+
         if (isWar && includeInProject) {
             writeWebXml();
             project.addCompileSourceRoot(workingDirectory.toString());
         }
     }
-    
+
     /**
      * Figure out where the tools.jar file lives.
      */
     private URL findToolsJar() throws MojoExecutionException {
         final File javaHome = FileUtils.resolveFile(new File(File.pathSeparator), System.getProperty("java.home"));
-        
+
         final List<File> toolsPaths = new ArrayList<File>();
-        
+
         File file = null;
         if (SystemUtils.IS_OS_MAC_OSX) {
             file = FileUtils.resolveFile(javaHome, "../Classes/classes.jar");
@@ -448,12 +449,12 @@ abstract class CompilationMojoSupport extends AbstractMojo {
             file = FileUtils.resolveFile(javaHome, "../lib/tools.jar");
             toolsPaths.add(file);
         }
-        
+
         if (!file.exists()) {
             throw new MojoExecutionException("Could not find tools.jar at " + toolsPaths + " under java.home: " + javaHome);
         }
         getLog().debug("Using tools.jar: " + file);
-        
+
         final URI fileUri = file.toURI();
         try {
             return fileUri.toURL();
@@ -462,7 +463,7 @@ abstract class CompilationMojoSupport extends AbstractMojo {
             throw new MojoExecutionException("Could not generate URL from URI: " + fileUri, e);
         }
     }
-    
+
     private void writeWebXml() throws MojoExecutionException {
         if (!inputWebXml.exists()) {
             throw new MojoExecutionException("web.xml does not exist at: " + inputWebXml);
@@ -470,23 +471,23 @@ abstract class CompilationMojoSupport extends AbstractMojo {
         if (!webFragmentFile.exists()) {
             throw new MojoExecutionException("web-fragment.xml does not exist at: " + webFragmentFile);
         }
-        
+
         final String webXml = readXmlToString(inputWebXml);
         if (webXml.indexOf(injectString) == -1) {
             throw new MojoExecutionException("web.xml does not contain inject string '" + injectString + "' - " + webFragmentFile);
         }
-        
+
         getLog().debug("Injecting " + webFragmentFile + " into " + inputWebXml + " and copying to " + outputWebXml);
-        
+
         final String fragmentXml = readXmlToString(webFragmentFile);
-        
+
         String output = StringUtils.replace(webXml, injectString, fragmentXml);
-        
+
         // If using the default, then tack on the end of the document
         if (DEFAULT_INJECT_STRING.equals(injectString)) {
             output += DEFAULT_INJECT_STRING;
         }
-        
+
         // Write the jsp web.xml file
         final File workingWebXml = new File(workingDirectory, "jspweb.xml");
         XmlStreamWriter xmlStreamWriter = null;
@@ -503,7 +504,7 @@ abstract class CompilationMojoSupport extends AbstractMojo {
 
         // Make sure parent dirs exist
         outputWebXml.getParentFile().mkdirs();
-        
+
         // Copy the file into place filtering it on the way
         final MavenFileFilterRequest request = new MavenFileFilterRequest();
         request.setEncoding(this.javaEncoding);
@@ -526,7 +527,7 @@ abstract class CompilationMojoSupport extends AbstractMojo {
         Reader reader = null;
         try {
             reader = new XmlStreamReader(new BufferedInputStream(new FileInputStream(f)), true, this.javaEncoding);
-            
+
             return IOUtils.toString(reader);
         }
         catch (IOException e) {
