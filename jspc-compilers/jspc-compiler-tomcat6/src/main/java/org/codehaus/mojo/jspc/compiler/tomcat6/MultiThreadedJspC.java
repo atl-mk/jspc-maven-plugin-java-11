@@ -18,58 +18,22 @@
  */
 package org.codehaus.mojo.jspc.compiler.tomcat6;
 
-import java.io.BufferedReader;
-import java.io.CharArrayWriter;
-import java.io.EOFException;
+import org.apache.jasper.JasperException;
+import org.apache.jasper.JspC;
+import org.apache.jasper.compiler.Localizer;
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
+import org.apache.tools.ant.BuildException;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-import java.util.StringTokenizer;
-import java.util.Vector;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import javax.servlet.jsp.tagext.TagLibraryInfo;
-
-import org.apache.jasper.JasperException;
-import org.apache.jasper.JspC;
-import org.apache.jasper.JspCompilationContext;
-import org.apache.jasper.Options;
-import org.apache.jasper.compiler.Compiler;
-import org.apache.jasper.compiler.JspConfig;
-import org.apache.jasper.compiler.JspRuntimeContext;
-import org.apache.jasper.compiler.Localizer;
-import org.apache.jasper.compiler.TagPluginManager;
-import org.apache.jasper.compiler.TldLocationsCache;
-import org.apache.jasper.servlet.JspCServletContext;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tools.ant.AntClassLoader;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.util.FileUtils;
 
 /**
 * Shell for the jspc compiler.  Handles all options associated with the
@@ -106,11 +70,11 @@ import org.apache.tools.ant.util.FileUtils;
 public class MultiThreadedJspC extends JspC {
     // Logger
    private static final Log log = LogFactory.getLog(MultiThreadedJspC.class);
-    
+
    private int threads = 1;
    private long compilationTimeout = TimeUnit.MINUTES.toMinutes(30);
-   
-   
+
+
    public int getThreads() {
        return threads;
    }
@@ -118,19 +82,17 @@ public class MultiThreadedJspC extends JspC {
    public void setThreads(int threads) {
        this.threads = threads;
    }
-   
+
    public long getCompilationTimeout() {
        return compilationTimeout;
    }
-    
+
    public void setCompilationTimeout(long compilationTimeoutMinutes) {
        this.compilationTimeout = compilationTimeoutMinutes;
    }
-   
+
    /**
     * Executes the compilation.
-    *
-    * @throws JasperException If an error occurs
     */
    @Override
    public void execute() {
@@ -175,11 +137,11 @@ public class MultiThreadedJspC extends JspC {
            }
 
            initWebXml();
-           
+
            log.info("compiling with " + getThreads() + " threads");
            ExecutorService executor = Executors.newFixedThreadPool(getThreads());
            final List<JasperException> errorCollector = Collections.synchronizedList(new ArrayList<JasperException>());
-           
+
            for (Object p : pages) {
                String nextjsp = p.toString();
                File fjsp = new File(nextjsp);
@@ -201,7 +163,7 @@ public class MultiThreadedJspC extends JspC {
                if (nextjsp.startsWith("." + File.separatorChar)) {
                    nextjsp = nextjsp.substring(2);
                }
-               
+
                final String jspToCompile = nextjsp;
                executor.execute(new Runnable() {
                 public void run() {
@@ -213,10 +175,10 @@ public class MultiThreadedJspC extends JspC {
                 }
             });
            }
-           
+
            executor.shutdown();
            executor.awaitTermination(compilationTimeout, TimeUnit.MILLISECONDS);
-           
+
            if (errorCollector.size() > 0) {
                throwBuildException(errorCollector);
            }
@@ -240,10 +202,10 @@ public class MultiThreadedJspC extends JspC {
            }
        }
    }
-   
+
    private void throwBuildException(List<JasperException> errorCollector) {
        StringBuilder errOut = new StringBuilder();
-       
+
        for (JasperException je : errorCollector) {
            Throwable rootCause = je;
            while (rootCause instanceof JasperException
@@ -255,8 +217,8 @@ public class MultiThreadedJspC extends JspC {
            }
            errOut.append(rootCause.getMessage()).append('\n');
        }
-       
+
     // throw exception with first error encountered as cause, but all messages
-       throw new BuildException(errOut.toString(), errorCollector.get(0)); 
-   }   
+       throw new BuildException(errOut.toString(), errorCollector.get(0));
+   }
 }
