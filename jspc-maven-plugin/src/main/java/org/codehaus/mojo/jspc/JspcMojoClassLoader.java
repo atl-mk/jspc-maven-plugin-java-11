@@ -30,7 +30,7 @@ import java.net.URLClassLoader;
 public class JspcMojoClassLoader
     extends URLClassLoader
 {
-    private ClassLoader parent;
+    private final ClassLoader parent;
 
     public JspcMojoClassLoader() {
         this(ClassLoader.getSystemClassLoader());
@@ -38,7 +38,7 @@ public class JspcMojoClassLoader
 
     public JspcMojoClassLoader(ClassLoader parent) {
         super(new URL[0]);
-        
+
         this.parent = parent;
     }
 
@@ -48,11 +48,11 @@ public class JspcMojoClassLoader
 
     public URL findResource(String name) {
         URL url = super.findResource(name);
-        
+
         if (url == null){
             url = parent.getResource(name);
         }
-        
+
         return url;
     }
 

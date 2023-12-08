@@ -193,7 +193,7 @@ public class MultiThreadedJspC extends JspC {
            throw new BuildException(ioe);
 
        } catch (JasperException je) {
-           throwBuildException(Arrays.asList(je));
+           throwBuildException(Collections.singletonList(je));
        } catch (InterruptedException e) {
         throw new BuildException(e);
        } finally {
