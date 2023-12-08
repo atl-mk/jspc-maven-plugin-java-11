@@ -21,39 +21,39 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
         <groupId>org.jasig.mojo.jspc</groupId>
         <artifactId>jspc-compilers</artifactId>
         <version>2.0.2-atlassian-M01</version>
     </parent>
-    
+
     <artifactId>jspc-compiler-tomcat5</artifactId>
     <name>JSPC Compiler for Tomcat 5</name>
-    
+
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>jspc-compiler-api</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-component-annotations</artifactId>
         </dependency>
-            
+
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.apache.ant</groupId>
             <artifactId>ant</artifactId>
             <version>1.9.0</version>
         </dependency>
-        
+
         <dependency>
             <groupId>tomcat</groupId>
             <artifactId>jasper-compiler</artifactId>
@@ -71,7 +71,7 @@
             <artifactId>jasper-compiler-jdt</artifactId>
             <version>5.5.23</version>
         </dependency>
-        
+
         <dependency>
             <groupId>tomcat</groupId>
             <artifactId>jasper-runtime</artifactId>
