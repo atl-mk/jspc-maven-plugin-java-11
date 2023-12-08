@@ -15,7 +15,7 @@
     </licenses>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.jasig.mojo.jspc</groupId>
+    <groupId>com.atlassian.forks.jspc</groupId>
     <artifactId>jspc</artifactId>
     <packaging>pom</packaging>
     <version>2.0.2-atlassian-1</version>

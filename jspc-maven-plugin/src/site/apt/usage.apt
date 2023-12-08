@@ -4,7 +4,7 @@
  ------
  $Id$
 
-~~ 
+~~
 ~~ Licensed to the Apache Software Foundation (ASF) under one
 ~~ or more contributor license agreements.  See the NOTICE file
 ~~ distributed with this work for additional information
@@ -37,7 +37,7 @@ Usage
 
 +----------+
 <plugin>
-    <groupId>org.jasig.mojo.jspc</groupId>
+    <groupId>com.atlassian.forks.jspc</groupId>
     <artifactId>jspc-maven-plugin</artifactId>
     <executions>
         <execution>
@@ -46,11 +46,11 @@ Usage
             </goals>
         </execution>
     </executions>
-    
+
     <!-- Use the Tomcat 6 JSP compiler -->
     <dependencies>
         <dependency>
-            <groupId>org.jasig.mojo.jspc</groupId>
+            <groupId>com.atlassian.forks.jspc</groupId>
             <artifactId>jspc-compiler-tomcat6</artifactId>
         </dependency>
     </dependencies>
@@ -67,14 +67,14 @@ Usage
 
  If you are using Servlet 2.4 or later, there is no need to place a web fragment
  tag in your web.xml file.  The plugin will simply append it at the end.
- 
+
  However, if you want a specific location in your <<<web.xml>>> file that you want to
  inject your web fragment,  you can do so by placing a tag that tells the JSPC plugin
  where to inject the servlet/jsp mapping.
- 
+
  First, in the pom, you need to set the configuration parameter to the fragment
  tag to look for, such as:
- 
+
 +----------+
 <!-- [INSERT FRAGMENT HERE] -->
 +----------+
@@ -84,7 +84,7 @@ Usage
 
 +----------+
 <plugin>
-    <groupId>org.jasig.mojo.jspc</groupId>
+    <groupId>com.atlassian.forks.jspc</groupId>
     <artifactId>jspc-maven-plugin</artifactId>
     <configuration>
         <injectString>&lt;!-- [INSERT FRAGMENT HERE] --&gt;</injectString>
@@ -101,9 +101,9 @@ Usage
     <servlet>
         <!-- servlets defined here -->
     </servlet>
-    
+
     <!-- [INSERT FRAGMENT HERE] -->
-    
+
     <servlet-mapping>
         <!-- mappings defined here -->
     </servlet-mapping>
@@ -115,7 +115,7 @@ Usage
  You can also use this plugin with non-war projects, for instance to validate JSPs.
  They will be compiled, but not included in your final artifact, and no <<<web.xml>>>
  file will be generated or modified.
- 
+
  If you want to just validate and compile your JSPs without actually including the
  generated code in your war project, you can also use set the <<<includeInProject>>>
  parameter to false.
